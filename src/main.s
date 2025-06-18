@@ -5,7 +5,7 @@ error_open_msg: .ascii "Errore: Impossibile aprire il file.\n"
 error_open_msg_len: .int . - error_open_msg
 due_punti: .byte ':'
 
-filename_ptr_fd_anagrafica: .ascii "../data/anagrafica.txt"         # Puntatore al nome del file (da argv[1])
+filename_ptr_fd_anagrafica: .ascii "../data/anagrafica.txt"         # Puntatore al nome del file (da argv[1]) 
 
 filename_ptr_fd_libretti: .ascii "../data/libretti.txt"
 

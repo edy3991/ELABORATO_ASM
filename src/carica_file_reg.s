@@ -18,7 +18,7 @@ filename_ptr_fd_reg: .int 0
 carica_file_reg:
     # prologo
     pushl %ebp			# per prassi si pusha ebp sullo stack così che poi venga recuperato
-    movl %esp, %ebp		# ciò a cui punta esp, ora punta anche ebp
+    movl %esp, %ebp		# ciò a cui punta esp, ora punta anche ebp 
     
 
     # eax contiene il parametro (filename)
