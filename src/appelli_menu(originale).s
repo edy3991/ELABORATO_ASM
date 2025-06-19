@@ -49,7 +49,7 @@ menu:
     je vedi_libretto
 
     cmpl $3, %eax
-    je vedi_esitii
+    je vedi_esiti
 
     cmpl $4, %eax
     je vedi_graduatoria
@@ -78,8 +78,10 @@ vedi_libretto:
     # Dopo elaborazione torna al menu
     jmp menu
 
-vedi_esitii:
-    call vedi_esiti
+vedi_esiti:
+    # Qui va la logica per leggere il codice esame,
+    # cercare nei libretti e calcolare la media dei voti.
+
     # Dopo elaborazione torna al menu
     jmp menu
 
