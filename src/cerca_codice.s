@@ -1,109 +1,103 @@
 .section .text
-.global cerca_codice
-.type cerca_codice, @function
-
+.globl cerca_codice
 cerca_codice:
     pushl %ebp
     movl %esp, %ebp
 
-    movl 8(%ebp), %esi      # %esi ← puntatore alla riga
+    movl 8(%ebp), %esi      # puntatore alla riga
 
-    # Trova primo spazio (separa matricola da esami)
-trova_spazio:
-    cmpb $0, (%esi)
-    je fine_cerca           # fine riga, nessun esame
-    cmpb $' ', (%esi)
-    je inizio_esami
+# scorre la riga fino al primo spazio
+ciclo_spazio:
+    cmpb $0, (%esi)        # verifica se nelle posizione esi c'e \0
+    je fine
+    cmpb $' ', (%esi)      # verifica se c'e uno spazio (arriva a AAA:6:28)
+    je trovato_spazio
     incl %esi
-    jmp trova_spazio
+    jmp ciclo_spazio
 
-inizio_esami:
-    incl %esi               # salta lo spazio, ora %esi punta al primo codice esame
+trovato_spazio:
+    incl %esi              # si posiziona sul primo carattere del primo codice
 
-loop_esami:
-    # confronta codice corrente con codice_buf
-    pushl %esi              # salva inizio codice su stack
+# ciclo per ogni codice
+ciclo_codici:
+    cmpb $0, (%esi)
+    je fine
 
-    movl $codice_buf, %edi  # %edi ← codice da confrontare
-confronta_codice:
+    pushl %esi             # salva l’indirizzo di inizio del codice
+    movl 12(%ebp), %edi    # carica il parametro 'codice' (2° argomento)
+
+    movl $3, %ecx          # confronta esattamente 3 caratteri
+confronta_3_caratteri:
     movb (%esi), %al
-    cmpb $':', %al
-    je fine_confronto
-    cmpb $0, %al
-    je fine_confronto
     cmpb (%edi), %al
-    jne salta_esame         # codice non corrisponde
+    jne codici_diversi
     incl %esi
     incl %edi
-    jmp confronta_codice
+    loop confronta_3_caratteri
 
-fine_confronto:
-    # I codici sono uguali
-    popl %ebx              # ripristina inizio codice
-    movl %ebx, %esi        # %esi torna a inizio del codice trovato
+    popl %esi
 
-    # salta codice + ':' → vai a leggere i crediti
-    cerca_primo_duepunti:
-        cmpb $':', (%esi)
-        je salta_duepunti1
-        incl %esi
-        jmp cerca_primo_duepunti
+# salta fino al primo ':'
 salta_duepunti1:
-    incl %esi  # salta ':'
+    cmpb $':', (%esi)
+    je trovato_duepunti1
+    incl %esi
+    jmp salta_duepunti1
 
-    # salta crediti + ':' → vai a leggere il voto
-    cerca_secondo_duepunti:
-        cmpb $':', (%esi)
-        je salta_duepunti2
-        incl %esi
-        jmp cerca_secondo_duepunti
+trovato_duepunti1:
+    incl %esi
+
+# salta fino al secondo ':'
 salta_duepunti2:
-    incl %esi  # ora %esi punta al voto (in ASCII)
+    cmpb $':', (%esi)
+    je trovato_duepunti2
+    incl %esi
+    jmp salta_duepunti2
 
-    # converte voto ASCII in intero
-    xorl %eax, %eax
-    leggi_cifra:
-        movb (%esi), %bl
-        cmpb $0, %bl
-        je somma_voto
-        cmpb $';', %bl
-        je somma_voto
-        subb $'0', %bl
-        imull $10, %eax
-        addl %ebx, %eax
-        incl %esi
-        jmp leggi_cifra
+trovato_duepunti2:
+    incl %esi
 
-somma_voto:
-    # somma voto a somma_voti
+# legge il voto
+    xor %eax, %eax
+leggi_voto:
+    movb (%esi), %bl
+    cmpb $0, %bl
+    je salva
+    cmpb $';', %bl
+    je salva
+    subb $'0', %bl
+    imul $10, %eax
+    addl %ebx, %eax
+    incl %esi
+    jmp leggi_voto
+
+salva:
     movl somma_voti, %ebx
     addl %eax, %ebx
     movl %ebx, somma_voti
 
-    # incrementa conteggio
     movl conteggio, %ebx
     incl %ebx
     movl %ebx, conteggio
 
-    jmp fine_cerca
+    jmp salta_codice
 
-salta_esame:
-    popl %esi     # ripristina posizione corrente
+codici_diversi:
+    popl %esi
 
-    # salta fino a prossimo esame (salta fino a ';' o fine riga)
-    cerca_punto_e_virgola:
-        cmpb $0, (%esi)
-        je fine_cerca
-        cmpb $';', (%esi)
-        je prossimo_esame
-        incl %esi
-        jmp cerca_punto_e_virgola
-
-prossimo_esame:
+salta_codice:
+    cmpb $0, (%esi)
+    je fine
+    cmpb $';', (%esi)
+    je fine_codice
     incl %esi
-    jmp loop_esami
+    jmp salta_codice
 
-fine_cerca:
+fine_codice:
+    incl %esi
+    jmp ciclo_codici
+
+fine:
     movl %ebp, %esp
     popl %ebp
     ret

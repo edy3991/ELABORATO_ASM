@@ -3,7 +3,7 @@
 .section .data
 # somma_voti: .long 0
 # conteggio:  .long 0
-no_voti_msg: .asciz "Nessuno studente ha sostenuto l’esame.\n"
+no_voti_msg: .asciz "Nessuno studente ha sostenuto l'esame.\n"
 media_msg: .asciz "Media voti: "
 .globl somma_voti     # rimuovere da qui fino le 4 righe sotto 
 .globl conteggio      
@@ -23,24 +23,24 @@ processa_buffer:
     movl 8(%ebp), %esi      # %esi <- puntatore inizio buffer
     movl 12(%ebp), %ecx     # %ecx = dimensione buffer
     xorl %ebx, %ebx         # offset nel buffer = 0
-
 loop_righe:                 # se l'offset ha superato il numero di byte del buffer, siamo alla fine del file
-    cmp %ebx, %ecx
+    cmp %ecx, %ebx          # controllo se ebx (partito da 0) ha raggiunto %exc 
     jge fine_buffer
 
     lea 0(%esi,%ebx), %edi   # %edi punta alla riga corrente, mi calcola edi = (esi + ebx * 1) + 0  il *1 e' sottointeso
 
     # cerca newline e sostituisce con \0
-    movl %ebx, %eax          # salviamo posizione inizio riga
-cerca_fine_riga:             # vado quindi a esaminare carattere per carattere, scorro ebx
-    cmp %ebx, %ecx           
-    jge fine_buffer         # questo perche ecx e' la dim(buffer)
-    cmpb $0x0A, (%esi,%ebx)   # verifica se il carattere e' uguale a \n = 0x0A
+    movl %ebx, %eax          # salviamo posizione inizio riga in eax, eax viene usato per scorrere
+cerca_fine_riga:             # vado quindi a esaminare carattere per carattere, scorro ebx    
+    cmp %ecx, %ebx           # confronto posizione_attuale = dim_buffer per vedere se sono alla fine e evitare overflow
+    jge fine_buffer          # se la codizione prima e' vera, allora salto 
+    cmpb $0x0A, (%esi,%ebx)  # verifica se il carattere (%esi + %ebx) e' uguale a \n = 0x0A
     je fine_riga_trovata
-    incl %ebx           
+    incl %ebx                # passo al prossimo carattere
     jmp cerca_fine_riga
 
 fine_riga_trovata:
+    # trasformo la riga nello stile riga C con \0 alla fine
     movb $0, (%esi,%ebx)     # sostituisci \n con \0 per isolare la riga
     incl %ebx                # sposta alla prossima riga
 
@@ -81,6 +81,9 @@ stampa_nessun_esame:
     movl $4, %eax
     movl $1, %ebx
     movl $no_voti_msg, %ecx
-    movl $35, %edx
+    movl $39, %edx
     int $0x80
+
+    movl %ebp, %esp  # 21
+    popl %ebp        # 21
     ret
