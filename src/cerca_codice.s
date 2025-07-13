@@ -1,3 +1,7 @@
+.extern codice_buf
+.extern somma_voti
+.extern conteggio
+
 .section .text
 .globl cerca_codice
 cerca_codice:
@@ -5,7 +9,6 @@ cerca_codice:
     movl %esp, %ebp
 
     movl 8(%ebp), %esi      # puntatore alla riga
-
 # scorre la riga fino al primo spazio
 ciclo_spazio:
     cmpb $0, (%esi)        # verifica se nelle posizione esi c'e \0
@@ -17,15 +20,16 @@ ciclo_spazio:
 
 trovato_spazio:
     incl %esi              # si posiziona sul primo carattere del primo codice
-
+    
 # ciclo per ogni codice
 ciclo_codici:
     cmpb $0, (%esi)
     je fine
 
     pushl %esi             # salva l’indirizzo di inizio del codice
-    movl 12(%ebp), %edi    # carica il parametro 'codice' (2° argomento)
-
+    movl $codice_buf, %edi
+    # movl 12(%ebp), %edi    # carica il parametro 'codice' (2° argomento).     HO COMMENTATO QUESTO E SCRITTO NELLA RIGA SOPRA
+     
     movl $3, %ecx          # confronta esattamente 3 caratteri
 confronta_3_caratteri:
     movb (%esi), %al
@@ -60,10 +64,11 @@ trovato_duepunti2:
 # legge il voto
     xor %eax, %eax
 leggi_voto:
+    
     movb (%esi), %bl
     cmpb $0, %bl
     je salva
-    cmpb $';', %bl
+    cmpb $59, %bl      # il $59 e' il carattere ascii  ;  
     je salva
     subb $'0', %bl
     imul $10, %eax
@@ -72,14 +77,15 @@ leggi_voto:
     jmp leggi_voto
 
 salva:
+    
     movl somma_voti, %ebx
     addl %eax, %ebx
     movl %ebx, somma_voti
-
+    
     movl conteggio, %ebx
     incl %ebx
     movl %ebx, conteggio
-
+    
     jmp salta_codice
 
 codici_diversi:
@@ -88,7 +94,7 @@ codici_diversi:
 salta_codice:
     cmpb $0, (%esi)
     je fine
-    cmpb $';', (%esi)
+    cmpb $59, (%esi)        # il $59 e' il carattere ascii  ;  
     je fine_codice
     incl %esi
     jmp salta_codice

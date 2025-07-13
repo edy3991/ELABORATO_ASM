@@ -29,7 +29,7 @@ vedi_esiti:
     movl $codice_buf, %ecx   # buffer di destinazione, cioe' inndirizzo da dove inizia a scrivere
     movl $16, %edx           # 16 Byte
     int $0x80
-
+    
     # obiettivo: rimuovo il \n alla fine dell'input
     movl $codice_buf, %esi   # carico indirizzo "1' carattere", lo metto in esi per scorrerlo 
 pulizia_input:               # funzione ricorsiva che trova \n 
@@ -42,7 +42,6 @@ pulizia_input:               # funzione ricorsiva che trova \n
 zero_term:                   # imposta \n a \0
     movb $0, (%esi)
 fine_pulizia:
-
     # apro il file libretti.txt
     movl $5, %eax                 # syscall open
     movl $libretti_path, %ebx     # nome del file
@@ -69,7 +68,7 @@ fine_pulizia:
     pushl $buffer              # indirizzo buffer
     call processa_buffer
     add $8, %esp               # ripulisce lo stack (4 per dim. buffer e 4 per ind. buffer)
-    jmp read_loop
+    # jmp read_loop
 
 fine_file:
     # chiusura file
